@@ -1,94 +1,128 @@
+
+
+// const express = require("express");
+// const app = express();
+// const port = 3000;
+// const fs = require("fs");
+
+// app.use(express.json());
+
+
+// app.get("/todo",async (req, res) => {
+//   try {
+//     const data =  await fs.readFileSync("./user.json", "utf-8");
+//     res.status(200).json(JSON.parse(data)); 
+//   } catch (error) {
+//     res.status(500).send("Алдаа гарлаа: ");
+//   }
+// });
+
+//   const data = await fs.readFileSync("./user.json","utf-8")
+//  const dataJSON = JSON.parse(data)
+ 
+
+
+// app.post("/post", async (req,res) => {
+//   try{
+//   const data = await fs.readFileSync("./user.json","utf-8")
+//  const dataJSON = JSON.parse(data)
+
+//  const {password,email,phone} = req.body
+//  if(!email){
+//   return res.status(400).send("password zaaval shardlage tai")
+//  }
+
+//  const result = dataJSON.find((el) => el.email === email)
+
+//  if(result) {
+//   return res.status(400).send("iim email  tei hereglegch baina")
+//  }
+
+//  dataJSON.push(req.body)
+
+//   fs.writeFileSync("./user.json", JSON.stringify(dataJSON, null, 2), "utf-8");
+
+//   res.status(201).json({ message: "amjilttai",data:req.body}) 
+// }catch(error){
+//   res.status(500).send("Алдаа гарлаа: ");
+// }
+// });
+
+
+
+
+// app.listen(port, () => {
+//   console.log(`Express server is running on http://localhost:${port}`);
+// });
+
+
+
+
 const express = require("express");
+const fs = require("fs").promises; // fs.promises ашиглах
 const app = express();
 const port = 3000;
-const fs = require("fs");
 
 app.use(express.json());
 
+// TODO жагсаалтыг авах API (асинхрон)
 app.get("/todo", async (req, res) => {
   try {
-    const data = await fs.readFileSync("./user.json", "utf-8");
-    const todo = JSON.parse(data);
-    res.json(todo);
+    const data = await fs.readFile("./user.json", "utf-8"); // асинхрон унших
+    res.status(200).json(JSON.parse(data)); // JSON болгож буцаана
   } catch (error) {
-    res.json([]);
+    res.status(500).send("Алдаа гарлаа: " + error.message);
   }
 });
 
-app.post("/user", async (req, res) => {
+// TODO жагсаалтад шинэ хэрэглэгч нэмэх API (асинхрон)
+app.post("/post", async (req, res) => {
   try {
-    const { task, username } = req.body;
-    const array = [];
-    try {
-      const data = await fs.readFileSync("./user.json", "utf-8");
-      array = JSON.parse(data);
-    } catch (error) {
-      return res.send("aldaa garlaa");
+    const data = await fs.readFile("./user.json", "utf-8"); // асинхрон унших
+    const dataJSON = JSON.parse(data);
+
+    const { password, email, phone } = req.body;
+    if (!email) {
+      return res.status(400).send("email заавал шаардлагатай");
     }
 
-    const newid = array.length > 0 ? array[array.length - 1].id + 1 : 1;
-    const newtodo = {
-      id: newid,
-      task,
-      username,
-      isDone: false,
-    };
+    // Шалгах: email-тай хэрэглэгч байгаа эсэх
+    const result = dataJSON.find((el) => el.email === email);
 
-    array.push(newtodo);
-    await fs.writeFileSync("./user.json", JSON.stringify(array, 2), "utf-8");
-    res.status(200).send("Ok");
+    if (result) {
+      return res.status(400).send("Ийм email-тай хэрэглэгч аль хэдийн байна");
+    }
+
+    // Шинээр хэрэглэгч нэмэх
+    dataJSON.push(req.body);
+
+    // Файлд бичих
+    await fs.writeFile("./user.json", JSON.stringify(dataJSON, null, 2), "utf-8");
+
+    res.status(201).json({ message: "Амжилттай нэмэгдлээ", data: req.body });
   } catch (error) {
-    res.status(400).send("aldaa");
-  }
-});
-
-app.put("/todo", async (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    const { task, username, isDone } = req.body;
-
-    const data = await fs.readFileSync("./user.json", "utf-8");
-    const todos = JSON.parse(data);
-
-    const result = todos.findIndex((t) => t.id === id);
-    if (result === -1) return res.status(400).send("oldsongui");
-
-    if (task !== undefined) todos[result].task = task;
-    if (username !== undefined) todos[result].username = username;
-    if (isDone !== undefined) todos[result].isDone = isDone;
-
-    await fs.writeFileSync("./user.json", JSON.stringify(todos, 2), "utf-8");
-    res.json(todos[index]);
-  } catch (error) {
-    res.status(500).send("todo shinchlen ");
-  }
-});
-
-// app.delete("/add", async (req, res) => {
-//   const data = await fs.readFileSync("./user.json", "utf-8");
-//   const result = JSON.parse(data);
-//   const { id, ...rest } = result;
-//   const dataJSON = rest;
-//   await fs.writeFileSync("./user.json", JSON.stringify(dataJSON), "utf-8");
-//   res.send("delete");
-// });
-
-app.delete("/todo/", async (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    const data = fs.readFileSync("./user.json", "utf-8");
-    let result = JSON.parse(data);
-    result = result.filter((todo) => todo.id !== id);
-    fs.writeFileSync("./user.json", JSON.stringify(todos, null, 2), "utf-8");
-    res.send("Deleted");
-  } catch (error) {
-    res.status(500).send("Ustgahad aldaa garlaa");
+    res.status(500).send("Алдаа гарлаа: " + error.message);
   }
 });
 
 app.listen(port, () => {
   console.log(`Express server is running on http://localhost:${port}`);
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // app.get("/add", (req, res) => {
 //   const data = fs.readFileSync("./user.json", "utf-8");
@@ -175,7 +209,91 @@ app.listen(port, () => {
 //   array.push(Movie);
 //   res.send("amjilltao");
 // });
-
+//-----------------------------------
 // app.get("/iren", (req, res) => {
 //   res.status(200).send(array);
+// });
+
+
+// app.get("/todo", async (req, res) => {
+//   try {
+//     const data = await fs.readFileSync("./user.json", "utf-8");
+//     const todo = JSON.parse(data);
+//     res.json(todo);
+//   } catch (error) {
+//     res.json([]);
+//   }
+// });
+
+// app.post("/user", async (req, res) => {
+//   try {
+//     const { task, username } = req.body;
+//     const array = [];
+//     try {
+//       const data = await fs.readFileSync("./user.json", "utf-8");
+//       array = JSON.parse(data);
+//     } catch (error) {
+//       return res.send("aldaa garlaa");
+//     }
+
+//     const newid = array.length > 0 ? array[array.length - 1].id + 1 : 1;
+//     const newtodo = {
+//       id: newid,
+//       task,
+//       username,
+//       isDone: false,
+//     };
+
+//     array.push(newtodo);
+//     await fs.writeFileSync("./user.json", JSON.stringify(array, 2), "utf-8");
+//     res.status(200).send("Ok");
+//   } catch (error) {
+//     res.status(400).send("aldaa");
+//   }
+// });
+
+// app.put("/todo", async (req, res) => {
+//   try {
+//     const id = parseInt(req.params.id);
+//     const { task, username, isDone } = req.body;
+
+//     const data = await fs.readFileSync("./user.json", "utf-8");
+//     const todos = JSON.parse(data);
+
+//     const result = todos.findIndex((t) => t.id === id);
+//     if (result === -1) return res.status(400).send("oldsongui");
+
+//     if (task !== undefined) todos[result].task = task;
+//     if (username !== undefined) todos[result].username = username;
+//     if (isDone !== undefined) todos[result].isDone = isDone;
+
+//     await fs.writeFileSync("./user.json", JSON.stringify(todos, 2), "utf-8");
+//     res.json(todos[index]);
+//   } catch (error) {
+//     res.status(500).send("todo shinchlen ");
+//   }
+// });
+
+
+// app.delete("/add", async (req, res) => {
+//   const data = await fs.readFileSync("./user.json", "utf-8");
+//   const result = JSON.parse(data);
+//   const { id, ...rest } = result;
+//   const dataJSON = rest;
+//   await fs.writeFileSync("./user.json", JSON.stringify(dataJSON), "utf-8");
+//   res.send("delete");
+// });
+
+
+// app.delete("/todo/", async (req, res) => {
+//   try {
+//     const id = parseInt(req.params.id);
+//     const data = fs.readFileSync("./user.json", "utf-8");
+//     let result = JSON.parse(data);
+//     result = result.filter((todo) => todo.id !== id);
+//     fs.writeFileSync("./user.json", JSON.stringify(todos, null, 2), "utf-8");
+//     res.send("Deleted");
+//   } catch (error) {
+//     res.status(500).send("Ustgahad aldaa garlaa");
+//   }
 // });
