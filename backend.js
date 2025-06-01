@@ -1,5 +1,3 @@
-
-
 // const express = require("express");
 // const app = express();
 // const port = 3000;
@@ -7,11 +5,10 @@
 
 // app.use(express.json());
 
-
 // app.get("/todo",async (req, res) => {
 //   try {
 //     const data =  await fs.readFileSync("./user.json", "utf-8");
-//     res.status(200).json(JSON.parse(data)); 
+//     res.status(200).json(JSON.parse(data));
 //   } catch (error) {
 //     res.status(500).send("Алдаа гарлаа: ");
 //   }
@@ -19,8 +16,6 @@
 
 //   const data = await fs.readFileSync("./user.json","utf-8")
 //  const dataJSON = JSON.parse(data)
- 
-
 
 // app.post("/post", async (req,res) => {
 //   try{
@@ -42,62 +37,64 @@
 
 //   fs.writeFileSync("./user.json", JSON.stringify(dataJSON, null, 2), "utf-8");
 
-//   res.status(201).json({ message: "amjilttai",data:req.body}) 
+//   res.status(201).json({ message: "amjilttai",data:req.body})
 // }catch(error){
 //   res.status(500).send("Алдаа гарлаа: ");
 // }
 // });
 
-
-
-
 // app.listen(port, () => {
 //   console.log(`Express server is running on http://localhost:${port}`);
 // });
 
-
-
-
 const express = require("express");
-const fs = require("fs").promises; // fs.promises ашиглах
+const fs = require("fs");
 const app = express();
 const port = 3000;
 
 app.use(express.json());
 
-// TODO жагсаалтыг авах API (асинхрон)
 app.get("/todo", async (req, res) => {
   try {
-    const data = await fs.readFile("./user.json", "utf-8"); // асинхрон унших
-    res.status(200).json(JSON.parse(data)); // JSON болгож буцаана
+    const data = await fs.readFile("./user.json", "utf-8");
+    res.status(200).json(JSON.parse(data));
   } catch (error) {
     res.status(500).send("Алдаа гарлаа: " + error.message);
   }
 });
 
-// TODO жагсаалтад шинэ хэрэглэгч нэмэх API (асинхрон)
 app.post("/post", async (req, res) => {
   try {
-    const data = await fs.readFile("./user.json", "utf-8"); // асинхрон унших
+    const data = await fs.readFile("./user.json", "utf-8");
     const dataJSON = JSON.parse(data);
 
-    const { password, email, phone } = req.body;
+    const { password, email, phone, lastname, firstname, username } = req.body;
     if (!email) {
       return res.status(400).send("email заавал шаардлагатай");
     }
 
-    // Шалгах: email-тай хэрэглэгч байгаа эсэх
     const result = dataJSON.find((el) => el.email === email);
 
     if (result) {
       return res.status(400).send("Ийм email-тай хэрэглэгч аль хэдийн байна");
     }
 
-    // Шинээр хэрэглэгч нэмэх
+    if (!phone) {
+      return res.status(400).send("phone zaaval shardlagatai");
+    }
+
+    const resul = dataJSON.find((el) => el.phone === phone);
+    if (resul) {
+      return res.status(400).send("iim utas burtgegdsen bn");
+    }
+
     dataJSON.push(req.body);
 
-    // Файлд бичих
-    await fs.writeFile("./user.json", JSON.stringify(dataJSON, null, 2), "utf-8");
+    await fs.writeFile(
+      "./user.json",
+      JSON.stringify(dataJSON, null, 2),
+      "utf-8"
+    );
 
     res.status(201).json({ message: "Амжилттай нэмэгдлээ", data: req.body });
   } catch (error) {
@@ -108,21 +105,6 @@ app.post("/post", async (req, res) => {
 app.listen(port, () => {
   console.log(`Express server is running on http://localhost:${port}`);
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // app.get("/add", (req, res) => {
 //   const data = fs.readFileSync("./user.json", "utf-8");
@@ -214,7 +196,6 @@ app.listen(port, () => {
 //   res.status(200).send(array);
 // });
 
-
 // app.get("/todo", async (req, res) => {
 //   try {
 //     const data = await fs.readFileSync("./user.json", "utf-8");
@@ -274,7 +255,6 @@ app.listen(port, () => {
 //   }
 // });
 
-
 // app.delete("/add", async (req, res) => {
 //   const data = await fs.readFileSync("./user.json", "utf-8");
 //   const result = JSON.parse(data);
@@ -283,7 +263,6 @@ app.listen(port, () => {
 //   await fs.writeFileSync("./user.json", JSON.stringify(dataJSON), "utf-8");
 //   res.send("delete");
 // });
-
 
 // app.delete("/todo/", async (req, res) => {
 //   try {
